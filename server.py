@@ -4,7 +4,7 @@ import hmac
 import json
 from typing import Optional
 
-from fastapi import Cookie, FastAPI, Form
+from fastapi import Body, Cookie, FastAPI
 from fastapi.responses import Response
 
 
@@ -75,8 +75,10 @@ def index_page(username: Optional[str] = Cookie(default=None)):
 
 
 @app.post("/login")
-def process_auth_page(username: Optional[str] = Form(default=None),
-                      password: Optional[str] = Form(default=None)):
+def process_auth_page(data: dict = Body(...)):
+    username = data.get("username")
+    password = data.get("password")
+
     if not username or not password:
         with open("templates/index.html", "r") as file:
             my_index_page = file.read()
@@ -96,7 +98,7 @@ def process_auth_page(username: Optional[str] = Form(default=None),
         }), media_type="application/json")
 
     response = Response(json.dumps({
-        "success": False,
+        "success": True,
         "message": f"Hello, {users[username]["name"]}!\nYou balance is {user["balance"]} ruble"
     }), media_type="application/json")
     username_signed = f"{base64.b64encode(username.encode()).decode()}.{sign_data(username)}"
